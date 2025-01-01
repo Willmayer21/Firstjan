@@ -1,0 +1,19 @@
+<div style="max-width: 600px; margin: 40px auto; padding: 20px;">
+ <h1 style="margin-bottom: 20px;">Spotify Playlist Downloader</h1>
+
+ <%= form_tag('/download', method: :post, style: 'margin-bottom: 20px;', remote: true) do %>
+   <div style="margin-bottom: 15px;">
+     <%= label_tag :playlist_id, 'Enter Spotify Playlist ID:', style: 'display: block; margin-bottom: 5px;' %>
+     <%= text_field_tag :playlist_id, nil, style: 'width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;' %>
+   </div>
+   <div style="display: flex; gap: 10px;">
+     <%= submit_tag 'Prepare Playlist', style: 'background: #3B82F6; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;' %>
+     <%= link_to 'Download Zip File', '#', id: 'download-zip-btn', style: 'display: none; background: #10B981; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none;' %>
+   </div>
+ <% end %>
+
+ <div id="error-message"></div>
+ <div id="playlist-info"></div>
+ <ul id="tracks-list" style="list-style: none; padding: 0;"></ul>
+ <div id="download-complete"></div>
+</div>
