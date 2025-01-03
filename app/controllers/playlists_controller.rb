@@ -18,7 +18,12 @@ class PlaylistsController < ApplicationController
       @playlist = RSpotify::Playlist.find_by_id(@playlist_id)
       raise "Playlist not found" unless @playlist
 
-      folder_name = "spotify_downloads_#{sanitize_filename(@playlist.name)}"
+      # Clean up old files before creating new directory
+      Rails.logger.info "Starting cleanup before download"
+      cleanup_old_files(1.hour.ago)
+      Rails.logger.info "Cleanup completed, starting download"
+
+      folder_name = "spotify_downloads_#{Time.current.to_i}_#{sanitize_filename(@playlist.name)}"
       download_dir = Rails.root.join('public', 'downloads', folder_name)
       FileUtils.mkdir_p(download_dir)
 
@@ -61,6 +66,39 @@ class PlaylistsController < ApplicationController
   end
 
   private
+
+  def cleanup_old_files(threshold)
+    Rails.logger.info "Starting cleanup before new download"
+    download_root = Rails.root.join('public', 'downloads')
+
+    # List current files before cleanup
+    Rails.logger.info "Current files in downloads directory:"
+    Dir.glob("#{download_root}/*").each do |entry|
+      Rails.logger.info "Found: #{entry}"
+    end
+
+    # Clean everything in the downloads directory
+    Dir.glob("#{download_root}/*").each do |entry|
+      begin
+        Rails.logger.info "Removing: #{entry}"
+        if File.directory?(entry)
+          FileUtils.rm_rf(entry)
+        else
+          FileUtils.rm(entry)
+        end
+      rescue => e
+        Rails.logger.error "Error cleaning #{entry}: #{e.message}"
+      end
+    end
+
+    # Verify cleanup
+    remaining = Dir.glob("#{download_root}/*")
+    if remaining.empty?
+      Rails.logger.info "Downloads directory is now empty"
+    else
+      Rails.logger.warn "Some files could not be removed: #{remaining.join(', ')}"
+    end
+  end
 
   def sanitize_filename(filename)
     filename.gsub(/[\x00\/\\:*?"<>|]/, '_')
