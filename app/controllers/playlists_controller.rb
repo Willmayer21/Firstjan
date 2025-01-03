@@ -48,7 +48,9 @@ class PlaylistsController < ApplicationController
       end
 
       zip_file_path = Rails.root.join('public', 'downloads', "#{folder_name}.zip").to_s
-      system('zip', '-r', zip_file_path, download_dir.to_s)
+      Dir.chdir(download_dir) do
+        system('zip', '-r', zip_file_path, '.')
+      end
 
       ActionCable.server.broadcast "progress_channel", {
         type: "complete",
